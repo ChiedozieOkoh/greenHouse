@@ -2,7 +2,7 @@
 #define DHT11_H
 
 #include "stm32f7xx.h"
-
+#include "stm32f7xx_hal_dma.h"
 #include "stm32f7xx_hal_gpio.h"
 #include "stm32f7xx_hal_rcc.h"
 #include "stm32f7xx_hal_tim.h"

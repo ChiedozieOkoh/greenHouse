@@ -1,9 +1,12 @@
 #include "dht11.h"
 TIM_HandleTypeDef ustim;
 
-int DHT11_Init(struct DHT11_Dev* develop, TIM_TypeDef *TIMx, GPIO_TyepDef* port, uint16_t pin)
+int DHT11_Init(struct DHT11_Dev* develop, TIM_TypeDef *TIMx, GPIO_TypeDef* port, uint16_t pin)
 {
 	GPIO_InitTypeDef GPIOInitStructure;
+	// TIMER initialization
+	TIM_ClockConfigTypeDef sClkSourceConfig;
+	TIM_MasterConfigTypeDef sMasterConfig;
 	
 	develop->port = port;
 	develop->pin = pin;
@@ -18,9 +21,7 @@ int DHT11_Init(struct DHT11_Dev* develop, TIM_TypeDef *TIMx, GPIO_TyepDef* port,
 	__HAL_RCC_TIM4_CLK_ENABLE();
 	
 	
-	// TIMER initialization
-	TIM_ClockConfigTypeDef sClkSourceConfig;
-	TIM_MasterConfigTypeDef sMasterConfig;
+	
 	
 	
 	ustim.Instance = TIMx;

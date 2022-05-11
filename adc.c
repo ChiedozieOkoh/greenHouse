@@ -1,7 +1,6 @@
 #include "adc.h"
 #include "lvl_led.h"
 HAL_StatusTypeDef adc_init(ADC_HandleTypeDef* adc){
-	 HAL_StatusTypeDef status;
 	
    __HAL_RCC_ADC1_CLK_ENABLE();	
    adc->Instance = ADC1;  

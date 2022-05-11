@@ -6,6 +6,7 @@
 
 // amount of time in milliseconds that the cpu will wait for a result from the adc 
 #define WAIT_TIME 1 
+#define MAX_LVL 1200
 
 enum WATER_LVL{
    WATER_LOW,

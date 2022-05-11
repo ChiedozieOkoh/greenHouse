@@ -2,6 +2,10 @@
 #include "water.h"
 #include <stdint.h>
 
+#define BOUND_INCR MAX_LVL / 3
+#define LOW_BOUND (BOUND_INCR)
+#define MID_BOUND ((BOUND_INCR) * 2)
+
 void init_water_gpio(void){
    GPIO_InitTypeDef gpio;
 
@@ -18,8 +22,8 @@ enum WATER_LVL read_water_lvl(ADC_HandleTypeDef* adc){
    uint32_t val = 0;  
    HAL_ADC_PollForConversion(adc,WAIT_TIME);
    val = HAL_ADC_GetValue(adc);
-   if(val > 500)return WATER_HIGH;
-   if(val < 500 && val > 299)return WATER_MID;
+   if(val > MID_BOUND)return WATER_HIGH;
+   if(val > LOW_BOUND)return WATER_MID;
    return WATER_LOW; 
 }
 

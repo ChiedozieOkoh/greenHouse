@@ -3,17 +3,21 @@
 #include "adc.h"
 #include "buzzer.h"
 #include "stm32f7xx_hal.h"
-#define lazy_delay() for(i =0;i < 2147483 ; i++);
+#include "cmsis_os.h"
+#define lazy_delay() osDelay(1000)
 
+#define LOW_WATER_SIGNAL 0x000F
 
-
+static osThreadId WTR_SENSOR_TID = NULL;
+static osThreadId ALARM_TID = NULL;
+static ADC_HandleTypeDef adc;
 void test_buzzer(void){
    while(1){
 	    play_buzzer();
 	 }
 } 
 void test_adc_input(ADC_HandleTypeDef* adc){
-   int i = 0;
+   
    HAL_StatusTypeDef status;	
    while(1){
       HAL_ADC_Start(adc);
@@ -48,27 +52,35 @@ void test_adc_input(ADC_HandleTypeDef* adc){
 
 }
 
-void test_water_lvl(ADC_HandleTypeDef* adc){
+void test_water_lvl(void const* arg){
 	 
-   int i = 0;
+   
    enum WATER_LVL water_lvl;
 
    
    while(1){
-      HAL_ADC_Start(adc);
+      HAL_ADC_Start(&adc);
       lazy_delay();
-      water_lvl = read_water_lvl(adc);
+      water_lvl = read_water_lvl(&adc);
       disp_lvl(water_lvl);
-      lazy_delay();
-      clear_all_leds();
 		 
       if(water_lvl == WATER_LOW){
-		     play_buzzer();
-		  }
-		  HAL_ADC_Stop(adc);			
+        osSignalSet(ALARM_TID,LOW_WATER_SIGNAL); 
+        play_buzzer();
+	}else{
+         osSignalClear(ALARM_TID,LOW_WATER_SIGNAL);
+      }
+
+      lazy_delay();
+      clear_all_leds();
+      HAL_ADC_Stop(&adc);			
    }
 }
 
+void sound_alarm(void const* arg){
+   osSignalWait(LOW_WATER_SIGNAL, osWaitForever);
+   play_buzzer();
+}
 
 /*TIM_HandleTypeDef htim2;
 
@@ -122,11 +134,12 @@ void SystemClock_Config(void) {
 int main(void){
 	
    unsigned volatile int i = 0; 
-   ADC_HandleTypeDef adc;
+   
    ADC_ChannelConfTypeDef channel;
    HAL_StatusTypeDef status;
    TIM_HandleTypeDef timer; 
-   
+   osThreadDef(test_water_lvl, osPriorityNormal,1, 0);
+	 osThreadDef(sound_alarm, osPriorityNormal, 1,0);
 
    buzzer_init();
 	
@@ -145,9 +158,10 @@ int main(void){
    status = HAL_ADC_PollForConversion(&adc,1000);
    if(status == HAL_OK) write_yellow(GPIO_PIN_SET);
    
-   //test_adc_input(&adc);
-	 //test_buzzer();
-   test_water_lvl(&adc);
-   //test_buzzer(&timer);
+	 
+   WTR_SENSOR_TID = osThreadCreate(osThread(test_water_lvl),NULL);
+   ALARM_TID = osThreadCreate(osThread(sound_alarm),NULL);
+  
+   while(1);
    return 0;
 }
